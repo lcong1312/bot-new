@@ -1,0 +1,14 @@
+node_modules/
+database/
+*.log
+.env
+.DS_Store
+Thumbs.db
+cache/
+*.mp3
+*.jpg
+*.png
+*.mp4
+package-lock.json
+.cloude/
+cookies.txt

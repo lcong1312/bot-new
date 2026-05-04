@@ -1,0 +1,57 @@
+{
+  "name": "Bot đần",
+  "prefix": "/",
+  "adminIDs": ["100050866984233"],
+  "adminFacebookLink": "https://facebook.com/profile.php?id=100050866984233",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "language": "vi",
+  "logEvents": true,
+  "hideCommandNotFound": false,
+  "privateChat": {
+    "allowAdminOnly": true,
+    "autoRedirectMessage": true,
+    "redirectMessage": "🤖 Xin chào! Tôi là bot tự động.\n\n📞 Để được hỗ trợ, vui lòng liên hệ admin:\n{adminLink}\n\n⚠️ Chỉ admin mới có thể chat trực tiếp với bot."
+  },
+  "database": {
+    "type": "mongodb",
+    "uri": "mongodb+srv://botuser:mla4WgkKWh1MQJDp@cluster.99szond.mongodb.net/?retryWrites=true&w=majority&appName=cluster",
+    "name": "messenger_bot",
+    "path": "./database"
+  },
+  "options": {
+    "selfListen": false,
+    "selfListenEvent": true,
+    "listenEvents": true,
+    "autoMarkRead": true,
+    "autoMarkDelivery": true,
+    "forceLogin": true,
+    "online": true
+  },
+  "autoReply": {
+    "enabled": true,
+    "randomReply": true,
+    "replyChance": 30,
+    "autoReaction": true,
+    "reactionChance": 50,
+    "cooldown": 5000
+  },
+  "autoReload": {
+    "enabled": true,
+    "debounceDelay": 1000,
+    "watchCommands": true,
+    "watchEvents": true,
+    "watchConfig": true
+  },
+  "reconnect": {
+    "enabled": true,
+    "maxAttempts": 5,
+    "delay": 5000,
+    "checkInterval": 30000
+  },
+  "unsendReaction": {
+    "enabled": true,
+    "emojis": ["🚮", "😠", "😡", "🤬", "❌"],
+    "adminOnly": false,
+    "groupAdminOnly": true
+  }
+}
