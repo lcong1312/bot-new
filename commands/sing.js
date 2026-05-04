@@ -95,7 +95,7 @@ module.exports = {
             const video = results[choice - 1];
             const videoURL = video.url;
 
-            await reply('⏳ Đang tải nhạc, vui lòng đợi...');
+            const loadingMsg = await reply('⏳ Đang tải nhạc, vui lòng đợi...');
 
             const cacheDir = path.join(__dirname, '../cache');
             await fs.ensureDir(cacheDir);
@@ -112,7 +112,11 @@ module.exports = {
             }
             const outputFile = path.join(cacheDir, files[0]);
 
+            // Thu hồi cả tin nhắn tìm kiếm và tin nhắn loading
             await api.unsendMessage(replyData.messageID);
+            if (loadingMsg?.messageID) {
+                await api.unsendMessage(loadingMsg.messageID);
+            }
 
             await api.sendMessage({
                 body: `🎵 Đã tải: ${video.title}\n⏱ Thời lượng: ${video.timestamp}`,
