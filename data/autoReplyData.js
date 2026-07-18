@@ -84,7 +84,9 @@ module.exports = {
         "haha": ["😂 Buồn cười ghê!", "🤣 Hài quá!", "😄 Vui nhộn!"],
         "wow": ["😮 Thật không?", "🤩 Amazing!", "⚡ Tuyệt vời!"],
         "ok": ["👌 Okie!", "✅ Roger!", "👍 Được rồi!"],
-        "không": ["🤔 Sao vậy?", "😅 Hiểu rồi!", "👌 No problem!"]
+        "không": ["🤔 Sao vậy?", "😅 Hiểu rồi!", "👌 No problem!"],
+		"su":["🤔 su đần?", "😅 su gà!"],
+		"gosu":["🎉 Ngu", "🤣 Đần"]
     },
 
     // Cảm xúc theo thời gian

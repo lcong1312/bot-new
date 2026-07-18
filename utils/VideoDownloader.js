@@ -198,10 +198,14 @@ class VideoDownloader {
     }
 
     /**
-     * Scrape Douyin page để tìm video CDN URL
+     * Scrape Douyin page để tìm video CDN URL (không watermark)
+     *
+     * Cấu trúc RENDER_DATA:
+     *   playAddr       -> array of {src: "url"} = video KHÔNG watermark (H264, bitrate cao)
+     *   playAddrH265   -> video H265 không watermark (thấp hơn)
+     *   playApi        -> API URL để serve video
      */
     async scrapeDouyinPage(videoId) {
-        // Thử nhiều URL format
         const pageUrls = [
             `https://www.douyin.com/jingxuan?modal_id=${videoId}`,
             `https://www.douyin.com/video/${videoId}`,
@@ -219,33 +223,26 @@ class VideoDownloader {
                     },
                 });
 
-                // Parse RENDER_DATA
                 const renderMatch = html.match(/<script id="RENDER_DATA"[^>]*>([\s\S]*?)<\/script>/);
                 if (!renderMatch) continue;
 
                 const decoded = decodeURIComponent(renderMatch[1]);
 
-                // Tìm playAddrH265 (video H264/H265 CDN URLs)
-                const cdnUrls = decoded.match(/https?:\/\/v\d+-[^\s"'\\]{20,500}/g);
-                if (cdnUrls && cdnUrls.length > 0) {
-                    // Lọc chỉ lấy URL chứa video (không phải audio)
-                    const videoUrls = cdnUrls.filter(u =>
-                        u.includes('media-video') || u.includes('video/tos')
-                    );
-
-                    if (videoUrls.length > 0) {
-                        // Ưu tiên URL có bitrate cao nhất
-                        const bestUrl = this.pickBestDouyinUrl(videoUrls);
-                        log.info('DOUYIN', `Tìm thấy CDN URL: ${bestUrl.substring(0, 80)}`);
-                        return bestUrl;
-                    }
+                // Tìm playAddr đầu tiên (KHÔNG phải playAddrH265, playAddrSize, playAddrFileHash)
+                // playAddr chứa array [{src: "url"}, ...] = video không watermark
+                const playAddrMatch = decoded.match(/"playAddr":\[\{[^}]*"src":"(https?:\/\/[^"]+)"/);
+                if (playAddrMatch) {
+                    const videoUrl = playAddrMatch[1].replace(/\\u002F/g, '/');
+                    log.info('DOUYIN', `Found playAddr (no watermark): ${videoUrl.substring(0, 80)}`);
+                    return videoUrl;
                 }
 
-                // Fallback: tìm playApi
+                // Fallback: playApi
                 const playApiMatch = decoded.match(/"playApi":"(https?:\/\/[^"]+)"/);
                 if (playApiMatch) {
-                    log.info('DOUYIN', `Tìm thấy playApi: ${playApiMatch[1].substring(0, 80)}`);
-                    return playApiMatch[1].replace(/\\u002F/g, '/');
+                    const videoUrl = playApiMatch[1].replace(/\\u002F/g, '/');
+                    log.info('DOUYIN', `Found playApi: ${videoUrl.substring(0, 80)}`);
+                    return videoUrl;
                 }
             } catch (e) {
                 log.warn('DOUYIN', `Lỗi fetch ${pageUrl}: ${e.message}`);
@@ -253,27 +250,6 @@ class VideoDownloader {
         }
 
         return null;
-    }
-
-    /**
-     * Chọn URL Douyin tốt nhất (bitrate cao nhất)
-     */
-    pickBestDouyinUrl(urls) {
-        let best = urls[0];
-        let bestBr = 0;
-
-        for (const url of urls) {
-            const brMatch = url.match(/br=(\d+)/);
-            if (brMatch) {
-                const br = parseInt(brMatch[1]);
-                if (br > bestBr) {
-                    bestBr = br;
-                    best = url;
-                }
-            }
-        }
-
-        return best;
     }
 
     /**
