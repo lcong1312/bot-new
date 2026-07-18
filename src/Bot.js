@@ -265,7 +265,16 @@ class Bot {
 
     async react(emoji, messageID) {
         try {
-            return await this.api.setMessageReaction(emoji, messageID);
+            return await new Promise((resolve, reject) => {
+                this.api.setMessageReaction(emoji, messageID, (error, info) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+
+                    resolve(info);
+                }, true);
+            });
         } catch (error) {
             log.error('REACT', 'Lỗi react tin nhắn:', error);
             throw error;

@@ -354,5 +354,5 @@ process.on('SIGINT', () => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    log.error('UNHANDLED', 'Unhandled Rejection at:', promise, 'reason:', reason);
+    console.error('[ERROR] UNHANDLED: Unhandled Rejection at:', promise, 'reason:', reason);
 });

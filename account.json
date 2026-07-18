@@ -1,4 +1,85 @@
 {
-	"appState": [
+	"appState":[
+	{
+		"key": "datr",
+		"value": "C79kabVWvbE56ZYFtu5Aitm7",
+		"domain": "facebook.com",
+		"path": "/",
+		"hostOnly": false,
+		"creation": "2026-07-18T09:39:13.275Z",
+		"lastAccessed": "2026-07-18T09:39:13.276Z"
+	},
+	{
+		"key": "sb",
+		"value": "C79kacApk-GXfuk9_SjOU6wm",
+		"domain": "facebook.com",
+		"path": "/",
+		"hostOnly": false,
+		"creation": "2026-07-18T09:39:13.276Z",
+		"lastAccessed": "2026-07-18T09:39:13.276Z"
+	},
+	{
+		"key": "ps_l",
+		"value": "1",
+		"domain": "facebook.com",
+		"path": "/",
+		"hostOnly": false,
+		"creation": "2026-07-18T09:39:13.276Z",
+		"lastAccessed": "2026-07-18T09:39:13.276Z"
+	},
+	{
+		"key": "ps_n",
+		"value": "1",
+		"domain": "facebook.com",
+		"path": "/",
+		"hostOnly": false,
+		"creation": "2026-07-18T09:39:13.276Z",
+		"lastAccessed": "2026-07-18T09:39:13.276Z"
+	},
+	{
+		"key": "c_user",
+		"value": "61588452811635",
+		"domain": "facebook.com",
+		"path": "/",
+		"hostOnly": false,
+		"creation": "2026-07-18T09:39:13.276Z",
+		"lastAccessed": "2026-07-18T09:39:13.276Z"
+	},
+	{
+		"key": "wd",
+		"value": "1366x657",
+		"domain": "facebook.com",
+		"path": "/",
+		"hostOnly": false,
+		"creation": "2026-07-18T09:39:13.276Z",
+		"lastAccessed": "2026-07-18T09:39:13.276Z"
+	},
+	{
+		"key": "xs",
+		"value": "41%3AG12k3qqOGfGVAg%3A2%3A1779760930%3A-1%3A-1%3A%3AAczVq5-mDA0rgoVH9Xq9pZodZ-L1dgTu1SbnpubbYZc",
+		"domain": "facebook.com",
+		"path": "/",
+		"hostOnly": false,
+		"creation": "2026-07-18T09:39:13.276Z",
+		"lastAccessed": "2026-07-18T09:39:13.276Z"
+	},
+	{
+		"key": "fr",
+		"value": "125K9aydHFZlJ3noP.AWcLiWbk52aeJeuq4qtj1jbJkJsFB6EuUD5AzOD-TtNk9T_wWg8.BqW0Mz..AAA.0.0.BqW0Mz.AWfk7zZgQjLxQ3ShBkG_ePXJaY4",
+		"domain": "facebook.com",
+		"path": "/",
+		"hostOnly": false,
+		"creation": "2026-07-18T09:39:13.276Z",
+		"lastAccessed": "2026-07-18T09:39:13.276Z"
+	},
+	{
+		"key": "presence",
+		"value": "C%7B%22t3%22%3A%5B%5D%2C%22utc3%22%3A1784367536979%2C%22v%22%3A1%7D",
+		"domain": "facebook.com",
+		"path": "/",
+		"hostOnly": false,
+		"creation": "2026-07-18T09:39:13.276Z",
+		"lastAccessed": "2026-07-18T09:39:13.276Z"
+	}
 ]
 }

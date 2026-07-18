@@ -288,8 +288,8 @@ class EventHandler {
                 bot: this.bot,
                 reply: (msg) => this.bot.reply(msg, message),
                 send: (msg) => this.bot.sendMessage(msg, message.threadID),
-                react: (emoji) => this.bot.api.setMessageReaction(emoji, message.messageID),
-                unsend: (messageID) => this.bot.api.unsendMessage(messageID || message.messageID)
+                react: (emoji) => this.bot.react(emoji, message.messageID),
+                unsend: (messageID) => this.bot.unsend(messageID || message.messageID)
             };
             
             await event.execute(context);

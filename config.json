@@ -13,7 +13,7 @@
     "redirectMessage": "🤖 Xin chào! Tôi là bot tự động.\n\n📞 Để được hỗ trợ, vui lòng liên hệ admin:\n{adminLink}\n\n⚠️ Chỉ admin mới có thể chat trực tiếp với bot."
   },
   "database": {
-    "type": "mongodb",
+    "type": "json",
     "uri": "mongodb+srv://botuser:mla4WgkKWh1MQJDp@cluster.99szond.mongodb.net/?retryWrites=true&w=majority&appName=cluster",
     "name": "messenger_bot",
     "path": "./database"

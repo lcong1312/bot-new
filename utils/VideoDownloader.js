@@ -185,8 +185,8 @@ class VideoDownloader {
             if (!videoId) throw new Error('Không thể trích xuất video ID');
             log.info('DOUYIN', `Video ID: ${videoId}`);
 
-            // Bước 3: Fetch trang Douyin để lấy RENDER_DATA
-            const videoUrl = await this.scrapeDouyinPage(videoId);
+            // Bước 3: Fetch trang Douyin để lấy video URL
+            const videoUrl = await this.scrapeDouyinPage(videoId, resolvedUrl);
             if (!videoUrl) throw new Error('Không tìm thấy video URL trong page');
 
             // Bước 4: Download từ CDN
@@ -198,55 +198,88 @@ class VideoDownloader {
     }
 
     /**
-     * Scrape Douyin page để tìm video CDN URL (không watermark)
-     *
-     * Cấu trúc RENDER_DATA:
-     *   playAddr       -> array of {src: "url"} = video KHÔNG watermark (H264, bitrate cao)
-     *   playAddrH265   -> video H265 không watermark (thấp hơn)
-     *   playApi        -> API URL để serve video
+     * Scrape Douyin SSR page để tìm video URL.
      */
-    async scrapeDouyinPage(videoId) {
+    async scrapeDouyinPage(videoId, resolvedUrl = null) {
         const pageUrls = [
+            resolvedUrl && resolvedUrl.includes('iesdouyin.com') ? resolvedUrl : null,
+            `https://www.iesdouyin.com/share/video/${videoId}/?region=VN`,
             `https://www.douyin.com/jingxuan?modal_id=${videoId}`,
             `https://www.douyin.com/video/${videoId}`,
-        ];
+        ].filter(Boolean);
 
         for (const pageUrl of pageUrls) {
             try {
                 const { data: html } = await axios.get(pageUrl, {
                     timeout: 15000,
                     headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                        'User-Agent': pageUrl.includes('iesdouyin.com')
+                            ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148'
+                            : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
                         'Accept': 'text/html',
                         'Accept-Language': 'zh-CN,zh;q=0.9',
-                        'Referer': 'https://www.douyin.com/',
+                        'Referer': pageUrl.includes('iesdouyin.com') ? 'https://www.iesdouyin.com/' : 'https://www.douyin.com/',
                     },
                 });
 
-                const renderMatch = html.match(/<script id="RENDER_DATA"[^>]*>([\s\S]*?)<\/script>/);
-                if (!renderMatch) continue;
+                const routerUrl = this.extractDouyinRouterVideoUrl(html);
+                if (routerUrl) return routerUrl;
 
-                const decoded = decodeURIComponent(renderMatch[1]);
-
-                // Tìm playAddr đầu tiên (KHÔNG phải playAddrH265, playAddrSize, playAddrFileHash)
-                // playAddr chứa array [{src: "url"}, ...] = video không watermark
-                const playAddrMatch = decoded.match(/"playAddr":\[\{[^}]*"src":"(https?:\/\/[^"]+)"/);
-                if (playAddrMatch) {
-                    const videoUrl = playAddrMatch[1].replace(/\\u002F/g, '/');
-                    log.info('DOUYIN', `Found playAddr (no watermark): ${videoUrl.substring(0, 80)}`);
-                    return videoUrl;
-                }
-
-                // Fallback: playApi
-                const playApiMatch = decoded.match(/"playApi":"(https?:\/\/[^"]+)"/);
-                if (playApiMatch) {
-                    const videoUrl = playApiMatch[1].replace(/\\u002F/g, '/');
-                    log.info('DOUYIN', `Found playApi: ${videoUrl.substring(0, 80)}`);
-                    return videoUrl;
-                }
+                const renderUrl = this.extractDouyinRenderVideoUrl(html);
+                if (renderUrl) return renderUrl;
             } catch (e) {
                 log.warn('DOUYIN', `Lỗi fetch ${pageUrl}: ${e.message}`);
             }
+        }
+
+        return null;
+    }
+
+    extractDouyinRouterVideoUrl(html) {
+        const routerMatch = html.match(/<script>window\._ROUTER_DATA = ([\s\S]*?)<\/script>/);
+        if (!routerMatch) return null;
+
+        try {
+            const routerData = JSON.parse(routerMatch[1].trim());
+            const loaderData = routerData.loaderData || {};
+            const pageData = loaderData['video_(id)/page'] || Object.values(loaderData).find(value => value?.videoInfoRes);
+            const item = pageData?.videoInfoRes?.item_list?.[0];
+            const playAddr = item?.video?.play_addr;
+            const urlList = playAddr?.url_list || [];
+            let videoUrl = urlList.find(url => /^https?:\/\//.test(url));
+
+            if (!videoUrl && playAddr?.uri) {
+                videoUrl = `https://aweme.snssdk.com/aweme/v1/play/?line=0&ratio=720p&video_id=${playAddr.uri}`;
+            }
+
+            if (!videoUrl) return null;
+
+            videoUrl = videoUrl.replace(/\\u002F/g, '/').replace('/playwm/', '/play/');
+            log.info('DOUYIN', `Found SSR play URL: ${videoUrl.substring(0, 80)}`);
+            return videoUrl;
+        } catch (error) {
+            log.warn('DOUYIN', `Không parse được _ROUTER_DATA: ${error.message}`);
+            return null;
+        }
+    }
+
+    extractDouyinRenderVideoUrl(html) {
+        const renderMatch = html.match(/<script id="RENDER_DATA"[^>]*>([\s\S]*?)<\/script>/);
+        if (!renderMatch) return null;
+
+        const decoded = decodeURIComponent(renderMatch[1]);
+        const playAddrMatch = decoded.match(/"playAddr":\[\{[^}]*"src":"(https?:\/\/[^"]+)"/);
+        if (playAddrMatch) {
+            const videoUrl = playAddrMatch[1].replace(/\\u002F/g, '/').replace('/playwm/', '/play/');
+            log.info('DOUYIN', `Found RENDER_DATA playAddr: ${videoUrl.substring(0, 80)}`);
+            return videoUrl;
+        }
+
+        const playApiMatch = decoded.match(/"playApi":"(https?:\/\/[^"]+)"/);
+        if (playApiMatch) {
+            const videoUrl = playApiMatch[1].replace(/\\u002F/g, '/').replace('/playwm/', '/play/');
+            log.info('DOUYIN', `Found RENDER_DATA playApi: ${videoUrl.substring(0, 80)}`);
+            return videoUrl;
         }
 
         return null;
@@ -315,17 +348,22 @@ class VideoDownloader {
         const fileName = `ytdl_${Date.now()}`;
         const outputTemplate = path.join(CACHE_DIR, `${fileName}.%(ext)s`);
         const ytdlpPath = path.join(__dirname, '..', 'node_modules', 'youtube-dl-exec', 'bin', 'yt-dlp.exe');
+        const cookiesPath = path.join(__dirname, '..', 'cookies.txt');
+        const args = [
+            url,
+            '-o', outputTemplate,
+            '--no-playlist',
+            '-f', 'best[ext=mp4]/best',
+            '--no-warnings',
+            '--no-check-certificates',
+        ];
+
+        if (fs.existsSync(cookiesPath)) {
+            args.push('--cookies', cookiesPath);
+        }
 
         try {
-            await execFileAsync(ytdlpPath, [
-                url,
-                '-o', outputTemplate,
-                '--no-playlist',
-                '-f', 'best[ext=mp4]/best',
-                '--no-warnings',
-                '--quiet',
-                '--no-check-certificates',
-            ], { timeout: 60000 });
+            await execFileAsync(ytdlpPath, args, { timeout: 60000 });
 
             const files = await fs.readdir(CACHE_DIR);
             const downloaded = files.find(f => f.startsWith(fileName));
@@ -333,7 +371,11 @@ class VideoDownloader {
             if (downloaded) return path.join(CACHE_DIR, downloaded);
             throw new Error('yt-dlp không tạo file output');
         } catch (error) {
-            throw new Error(`yt-dlp error: ${error.stderr || error.message}`);
+            const details = error.stderr || error.stdout || error.message;
+            if (/Fresh cookies/i.test(details)) {
+                throw new Error('Douyin yêu cầu cookie mới. Hãy export cookie Douyin vào cookies.txt rồi thử lại.');
+            }
+            throw new Error(`yt-dlp error: ${details}`);
         }
     }
 
